@@ -37,7 +37,7 @@
 
 /* List of public keys */
 static const RSAPublicKey keys[] = {
-#include "keys.inc"
+// #include "keys.inc"
 };
 
 #define ASSUMED_UPDATE_SCRIPT_NAME  "META-INF/com/google/android/update-script"
@@ -327,7 +327,7 @@ handle_update_package(const char *path, ZipArchive *zip)
 
     if (!verify_jar_signature(zip, keys, sizeof(keys) / sizeof(keys[0]))) {
         LOGE("Verification failed, but no one cares, just keep going!\n");
-//        return INSTALL_CORRUPT;
+        return INSTALL_CORRUPT;
     }
 
     // Update should take the rest of the progress bar.

@@ -48,6 +48,17 @@ static const struct option OPTIONS[] = {
   { "wipe_cache", no_argument, NULL, 'c' },
 };
 
+
+// Key codes for HTC Supersonic, a.k.a. EVO 4G
+#define  NAV_KEY_DOWN     KEY_VOLUMEDOWN
+#define  NAV_KEY_UP       KEY_VOLUMEUP
+#define  NAV_KEY_SELECT   KEY_POWER
+// Key names for key codes
+#define  NAV_NAME_DOWN    "Vol-Down"
+#define  NAV_NAME_UP      "Vol-Up"
+#define  NAV_NAME_SELECT  "Power"
+
+
 static const char *COMMAND_FILE = "CACHE:recovery/command";
 static const char *INTENT_FILE = "CACHE:recovery/intent";
 static const char *LOG_FILE = "CACHE:recovery/log";
@@ -302,10 +313,10 @@ run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str6,cha
 {
 	ui_print(str1);
         ui_clear_key_queue();
-	ui_print("\nPress Trackball to confirm,");
+	ui_print("\nPress " NAV_NAME_SELECT " to confirm,");
        	ui_print("\nany other key to abort.\n");
 	int confirm = ui_wait_key();
-		if (confirm == KEY_POWER) {
+		if (confirm == NAV_KEY_SELECT) {
                 	ui_print(str2);
 		        pid_t pid = fork();
                 	if (pid == 0) {
@@ -335,7 +346,6 @@ static void
 choose_nandroid_file(const char *nandroid_folder)
 {
     static char* headers[] = { "Choose nandroid-backup,",
-			       "or press VOL-DOWN to return",
                                "",
                                NULL };
 
@@ -344,7 +354,7 @@ choose_nandroid_file(const char *nandroid_folder)
     struct dirent *de;
     char **files;
     char **list;
-    int total = 0;
+    int total = 1;
     int i;
 
     if (ensure_root_path_mounted(nandroid_folder) != 0) {
@@ -372,7 +382,7 @@ choose_nandroid_file(const char *nandroid_folder)
         }
     }
 
-    if (total==0) {
+    if (total==1) {
         LOGE("No nandroid-backup files found\n");
     		if (closedir(dir) < 0) {
 		  LOGE("Failure closing directory %s", path);
@@ -381,18 +391,24 @@ choose_nandroid_file(const char *nandroid_folder)
         return;
     }
 
-    /* allocate the array for the file list menu */
+    /* allocate the array for the file list menu (+1 for exit) */
     files = (char **) malloc((total + 1) * sizeof(*files));
     files[total] = NULL;
 
+    files[0] = (char *) malloc(9);
+    strcpy(files[0], "- Return");
+
     list = (char **) malloc((total + 1) * sizeof(*files));
     list[total] = NULL;
+
+    list[0] = (char *) malloc(9);
+    strcpy(list[0], "- Return");
 
     /* set it up for the second pass */
     rewinddir(dir);
 
     /* put the names in the array for the menu */
-    i = 0;
+    i = 1;
     while ((de = readdir(dir)) != NULL) {
         if (de->d_name[0] == '.') {
             continue;
@@ -427,17 +443,22 @@ choose_nandroid_file(const char *nandroid_folder)
         int key = ui_wait_key();
         int visible = ui_text_visible();
 
-        if ((key == KEY_VOLUMEDOWN) && visible) {
+        if ((key == NAV_KEY_DOWN) && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_VOLUMEUP) && visible) {
+        } else if ((key == NAV_KEY_UP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_POWER) && visible ) {
+        } else if ((key == NAV_KEY_SELECT) && visible ) {
             chosen_item = selected;
         }
 
-        if (chosen_item >= 0) {
+        // First item is "Return" to main menu
+        if (chosen_item == 0) {
+          return;
+        }
+
+        if (chosen_item > 0) {
             // turn off the menu, letting ui_print() to scroll output
             // on the screen.
             ui_end_menu();
@@ -445,10 +466,10 @@ choose_nandroid_file(const char *nandroid_folder)
             ui_print("\nRestore ");
             ui_print(list[chosen_item]);
             ui_clear_key_queue();
-            ui_print(" ?\nPress Trackball to confirm,");
+            ui_print(" ?\nPress " NAV_NAME_SELECT " to confirm,");
             ui_print("\nany other key to abort.\n");
             int confirm_apply = ui_wait_key();
-            if (confirm_apply == KEY_POWER) {
+            if (confirm_apply == NAV_KEY_SELECT) {
                       
                             ui_print("\nRestoring : ");
        		            char nandroid_command[200]="/sbin/nandroid-mobile.sh -r -e --norecovery --nomisc --nocache --nosplash1 --nosplash2 --defaultinput -s ";
@@ -501,7 +522,6 @@ static void
 choose_nandroid_folder()
 {
     static char* headers[] = { "Choose Device-ID,",
-			       "or press VOL-DOWN to return",
                                "",
                                NULL };
 
@@ -510,7 +530,7 @@ choose_nandroid_folder()
     struct dirent *de;
     char **files;
     char **list;
-    int total = 0;
+    int total = 1;
     int i;
 
     if (ensure_root_path_mounted(NANDROID_PATH) != 0) {
@@ -539,7 +559,7 @@ choose_nandroid_folder()
         }
     }
 
-    if (total==0) {
+    if (total==1) {
         LOGE("No Device-ID folder found\n");
     		if (closedir(dir) < 0) {
 		  LOGE("Failure closing directory %s", path);
@@ -551,15 +571,19 @@ choose_nandroid_folder()
     /* allocate the array for the file list menu */
     files = (char **) malloc((total + 1) * sizeof(*files));
     files[total] = NULL;
+    files[0] = (char *) malloc(9);
+    strcpy(files[0], "- Return");
 
     list = (char **) malloc((total + 1) * sizeof(*files));
     list[total] = NULL;
+    list[0] = (char *) malloc(9);
+    strcpy(list[0], "- Return");
 
     /* set it up for the second pass */
     rewinddir(dir);
 
     /* put the names in the array for the menu */
-    i = 0;
+    i = 1;
     while ((de = readdir(dir)) != NULL) {
         if (de->d_name[0] == '.') {
             continue;
@@ -591,17 +615,21 @@ choose_nandroid_folder()
         int key = ui_wait_key();
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN && visible) {
+        if (key == NAV_KEY_DOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_VOLUMEUP) && visible) {
+        } else if ((key == NAV_KEY_UP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_POWER) && visible ) {
+        } else if ((key == NAV_KEY_SELECT) && visible ) {
             chosen_item = selected;
         }
 
-        if (chosen_item >= 0) {
+        if (chosen_item == 0) {
+          return;
+        }
+
+        if (chosen_item > 0) {
             choose_nandroid_file(files[chosen_item]);
             if (!ui_text_visible()) break;
             break;
@@ -624,7 +652,6 @@ static void
 choose_update_file()
 {
     static char* headers[] = { "Choose update ZIP file,",
-			       "or press VOL-DOWN to return",
                                "",
                                NULL };
 
@@ -633,7 +660,7 @@ choose_update_file()
     struct dirent *de;
     char **files;
     char **list;
-    int total = 0;
+    int total = 1;
     int i;
 
     if (ensure_root_path_mounted(SDCARD_PATH) != 0) {
@@ -662,7 +689,7 @@ choose_update_file()
         }
     }
 
-    if (total==0) {
+    if (total==1) {
         LOGE("No zip files found\n");
 	    /* close directory handle */
     		if (closedir(dir) < 0) {
@@ -676,14 +703,20 @@ choose_update_file()
     files = (char **) malloc((total + 1) * sizeof(*files));
     files[total] = NULL;
 
+    files[0] = (char *) malloc(9);
+    strcpy(files[0], "- Return");
+
     list = (char **) malloc((total + 1) * sizeof(*files));
     list[total] = NULL;
+
+    list[0] = (char *) malloc(9);
+    strcpy(list[0], "- Return");
 
     /* set it up for the second pass */
     rewinddir(dir);
 
     /* put the names in the array for the menu */
-    i = 0;
+    i = 1;
     while ((de = readdir(dir)) != NULL) {
         char *extension = strrchr(de->d_name, '.');
         if (extension == NULL || de->d_name[0] == '.') {
@@ -716,17 +749,21 @@ choose_update_file()
         int key = ui_wait_key();
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN && visible) {
+        if (key == NAV_KEY_DOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_VOLUMEUP) && visible) {
+        } else if ((key == NAV_KEY_UP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_POWER) && visible ) {
+        } else if ((key == NAV_KEY_SELECT) && visible ) {
             chosen_item = selected;
         }
 
-        if (chosen_item >= 0) {
+        if (chosen_item == 0) {
+          return;
+        }
+
+        if (chosen_item > 0) {
             // turn off the menu, letting ui_print() to scroll output
             // on the screen.
             ui_end_menu();
@@ -734,10 +771,10 @@ choose_update_file()
             ui_print("\nInstall : ");
             ui_print(list[chosen_item]);
             ui_clear_key_queue();
-            ui_print(" ? \nPress Trackball to confirm,");
+            ui_print(" ? \nPress " NAV_NAME_SELECT " to confirm,");
             ui_print("\nany other key to abort.\n");
             int confirm_apply = ui_wait_key();
-            if (confirm_apply == KEY_POWER) {
+            if (confirm_apply == NAV_KEY_SELECT) {
                 ui_print("\nInstall from sdcard...\n");
                 int status = install_package(files[chosen_item]);
                 if (status != INSTALL_SUCCESS) {
@@ -747,8 +784,8 @@ choose_update_file()
                     break;  // reboot if logs aren't visible
                 } else {
                     if (firmware_update_pending()) {
-                        ui_print("\nReboot via vol-up+vol-down or menu\n"
-                                 "to complete installation.\n");
+                        ui_print("\nReboot from menu to complete\n"
+                                 "installation.\n");
                     } else {
                         ui_print("\nInstall from sdcard complete.\n");
                     }
@@ -777,20 +814,21 @@ show_menu_wipe()
 {
 
     static char* headers[] = { "Choose wipe item,",
-			       "or press VOL-DOWN to return",
 			       "",
 			       NULL };
 
 
 // these constants correspond to elements of the items[] list.
-#define ITEM_WIPE_DATA     0
-#define ITEM_WIPE_CACHE    1
-#define ITEM_WIPE_DALVIK   2
-#define ITEM_WIPE_EXT      3
-#define ITEM_WIPE_BAT      4
-#define ITEM_WIPE_ROT      5
+#define ITEM_EXIT_WIPE     0
+#define ITEM_WIPE_DATA     1
+#define ITEM_WIPE_CACHE    2
+#define ITEM_WIPE_DALVIK   3
+#define ITEM_WIPE_EXT      4
+#define ITEM_WIPE_BAT      5
+#define ITEM_WIPE_ROT      6
 
-    static char* items[] = { "- Wipe data/factory reset",
+    static char* items[] = { "- Return",
+                             "- Wipe data/factory reset",
                              "- Wipe cache",
                              "- Wipe Dalvik-cache",
                              "- Wipe SD:ext partition",
@@ -809,13 +847,13 @@ show_menu_wipe()
         int alt = ui_key_pressed(KEY_LEFTALT) || ui_key_pressed(KEY_RIGHTALT);
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN && visible) {
+        if (key == NAV_KEY_DOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_VOLUMEUP) && visible) {
+        } else if ((key == NAV_KEY_UP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_POWER) && visible ) {
+        } else if ((key == NAV_KEY_SELECT) && visible ) {
             chosen_item = selected;
         }
 
@@ -826,13 +864,16 @@ show_menu_wipe()
 
             switch (chosen_item) {
 
+                case ITEM_EXIT_WIPE:
+                    return;
+
                 case ITEM_WIPE_DATA:
                     ui_clear_key_queue();
 		    ui_print("\nWipe data and cache");
-                    ui_print("\nPress Trackball to confirm,");
+                    ui_print("\nPress " NAV_NAME_SELECT " to confirm,");
                     ui_print("\nany other key to abort.\n");
                     int confirm_wipe_data = ui_wait_key();
-                    if (confirm_wipe_data == KEY_POWER) {
+                    if (confirm_wipe_data == NAV_KEY_SELECT) {
                         ui_print("\nWiping data...\n");
                         erase_root("DATA:");
                         erase_root("CACHE:");
@@ -846,10 +887,10 @@ show_menu_wipe()
                 case ITEM_WIPE_CACHE:
                     ui_clear_key_queue();
 		    ui_print("\nWipe cache");
-                    ui_print("\nPress Trackball to confirm,");
+                    ui_print("\nPress " NAV_NAME_SELECT " to confirm,");
                     ui_print("\nany other key to abort.\n");
                     int confirm_wipe_cache = ui_wait_key();
-                    if (confirm_wipe_cache == KEY_POWER) {
+                    if (confirm_wipe_cache == NAV_KEY_SELECT) {
                         ui_print("\nWiping cache...\n");
                         erase_root("CACHE:");
                         ui_print("\nCache wipe complete.\n\n");
@@ -923,21 +964,22 @@ show_menu_br()
 {
 
     static char* headers[] = { "Choose backup/restore item;",
-			       "or press VOL-DOWN to return",
 			       "",
 			       NULL };
 
 
 // these constants correspond to elements of the items[] list.
-#define ITEM_NANDROID_BCK  0
-#define ITEM_NANDROID_BCKEXT  1
-#define ITEM_NANDROID_RES  2
-#define ITEM_GOOG_BCK  3
-#define ITEM_GOOG_RES  4
+#define ITEM_EXIT_NANDROID 0
+#define ITEM_NANDROID_BCK  1
+#define ITEM_NANDROID_BCKEXT  2
+#define ITEM_NANDROID_RES  3
+#define ITEM_GOOG_BCK  4
+#define ITEM_GOOG_RES  5
 
 
 
-    static char* items[] = { "- Nand backup",
+    static char* items[] = { "- Return",
+           "- Nand backup",
 			     "- Nand + ext backup",
 			     "- Nand restore",
 			     "- Backup Google proprietary system files",
@@ -955,13 +997,13 @@ show_menu_br()
         int alt = ui_key_pressed(KEY_LEFTALT) || ui_key_pressed(KEY_RIGHTALT);
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN && visible) {
+        if (key == NAV_KEY_DOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_VOLUMEUP) && visible) {
+        } else if ((key == NAV_KEY_UP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_POWER) && visible ) {
+        } else if ((key == NAV_KEY_SELECT) && visible ) {
             chosen_item = selected;
         }
 
@@ -971,6 +1013,9 @@ show_menu_br()
             ui_end_menu();
 
             switch (chosen_item) {
+
+                case ITEM_EXIT_NANDROID:
+                    return;
 
                 case ITEM_NANDROID_BCK:
 			run_script("\nCreate Nandroid backup?",
@@ -1040,17 +1085,18 @@ show_menu_partition()
 {
 
     static char* headers[] = { "Choose partition item,",
-			       "or press VOL-DOWN to return",
 			       "",
 			       NULL };
 
 // these constants correspond to elements of the items[] list.
-#define ITEM_PART_SD       0
-#define ITEM_PART_REP      1
-#define ITEM_PART_EXT3     2
-#define ITEM_PART_EXT4     3
+#define ITEM_EXIT_PART     0
+#define ITEM_PART_SD       1
+#define ITEM_PART_REP      2
+#define ITEM_PART_EXT3     3
+#define ITEM_PART_EXT4     4
 
-    static char* items[] = { "- Partition SD",
+    static char* items[] = { "- Return",
+           "- Partition SD",
 			     "- Repair SD:ext",
 			     "- SD:ext2 to ext3",
                              "- SD:ext3 to ext4",
@@ -1067,13 +1113,13 @@ show_menu_partition()
         int alt = ui_key_pressed(KEY_LEFTALT) || ui_key_pressed(KEY_RIGHTALT);
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN && visible) {
+        if (key == NAV_KEY_DOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_VOLUMEUP) && visible) {
+        } else if ((key == NAV_KEY_UP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_POWER) && visible ) {
+        } else if ((key == NAV_KEY_SELECT) && visible ) {
             chosen_item = selected;
         }
 
@@ -1084,24 +1130,27 @@ show_menu_partition()
 
             switch (chosen_item) {
 
+    case ITEM_EXIT_PART:
+      return;
+
 		case ITEM_PART_SD:
                         ui_clear_key_queue();
 			ui_print("\nPartition sdcard?");
-			ui_print("\nPress Trackball to confirm,");
+			ui_print("\nPress " NAV_NAME_SELECT " to confirm,");
 		       	ui_print("\nany other key to abort.");
 			int confirm = ui_wait_key();
-				if (confirm == KEY_POWER) {
+				if (confirm == NAV_KEY_SELECT) {
 	                                ui_clear_key_queue();
-				       	ui_print("\n\nUse trackball or volume-keys");
-				       	ui_print("\nto increase/decrease size,");
-				       	ui_print("\nTrackball to set (0=NONE) :\n\n");
+				       	ui_print("\n\nUse volume-keys to");
+				       	ui_print("\nincrease/decrease size,");
+				       	ui_print("\n" NAV_NAME_SELECT " to set (0=NONE) :\n\n");
 					char swapsize[32];
 					int swap = 32;
 					for (;;) {
 						sprintf(swapsize, "%4d", swap);
 						ui_print("\rSwap-size  = %s MB",swapsize);
         	                        	int key = ui_wait_key();
-						if (key == KEY_POWER) {
+						if (key == NAV_KEY_SELECT) {
 	           	                                ui_clear_key_queue();
 							if (swap==0){
 								ui_print("\rSwap-size  = %s MB : NONE\n",swapsize);
@@ -1109,9 +1158,9 @@ show_menu_partition()
 								ui_print("\rSwap-size  = %s MB : SET\n",swapsize);
 							}
 							break;
-					        } else if ((key == KEY_VOLUMEDOWN)) {
+					        } else if ((key == NAV_KEY_DOWN)) {
 								swap=swap-32;
-					        } else if ((key == KEY_VOLUMEUP)) {
+					        } else if ((key == NAV_KEY_UP)) {
 								swap=swap+32;
 			                        }
 						if (swap < 0) { swap=0; }
@@ -1123,7 +1172,7 @@ show_menu_partition()
 						sprintf(extsize, "%4d", ext);
 						ui_print("\rExt2-size  = %s MB",extsize);
         	                        	int key = ui_wait_key();
-						if (key == KEY_POWER) {
+						if (key == NAV_KEY_SELECT) {
 	           	                                ui_clear_key_queue();
 							if (ext==0){
 								ui_print("\rExt2-size  = %s MB : NONE\n",extsize);
@@ -1132,9 +1181,9 @@ show_menu_partition()
 							}
 							ui_print(" FAT32-size = Remainder\n");
 							break;
-					        } else if ((key == KEY_VOLUMEDOWN)) {
+					        } else if ((key == NAV_KEY_DOWN)) {
 								ext=ext-128;
-					        } else if ((key == KEY_VOLUMEUP)) {
+					        } else if ((key == NAV_KEY_UP)) {
 								ext=ext+128;
 			                        }
 						if (ext < 0) { ext=0; }
@@ -1210,15 +1259,16 @@ show_menu_other()
 {
 
     static char* headers[] = { "Choose item,",
-			       "or press VOL-DOWN to return",
 			       "",
 			       NULL };
 
 // these constants correspond to elements of the items[] list.
-#define ITEM_OTHER_FIXUID 0
-#define ITEM_OTHER_RE2SD  1
+#define ITEM_EXIT_OTHER 0
+#define ITEM_OTHER_FIXUID 1
+#define ITEM_OTHER_RE2SD  2
 
-    static char* items[] = { "- Fix apk uid mismatches",
+    static char* items[] = { "- Return",
+           "- Fix apk uid mismatches",
 			     "- Move recovery.log to SD",
                              NULL };
 
@@ -1233,13 +1283,13 @@ show_menu_other()
         int alt = ui_key_pressed(KEY_LEFTALT) || ui_key_pressed(KEY_RIGHTALT);
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN && visible) {
+        if (key == NAV_KEY_DOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_VOLUMEUP) && visible) {
+        } else if ((key == NAV_KEY_UP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_POWER) && visible ) {
+        } else if ((key == NAV_KEY_SELECT) && visible ) {
             chosen_item = selected;
         }
 
@@ -1249,6 +1299,9 @@ show_menu_other()
             ui_end_menu();
 
             switch (chosen_item) {
+
+              case ITEM_EXIT_OTHER:
+                return;
 
 	        case ITEM_OTHER_FIXUID:
 			run_script("\nFix package uid mismatches",
@@ -1297,6 +1350,8 @@ prompt_and_wait()
   
 	
     static char* headers[] = { "Android system recovery",
+             "  Nav: " NAV_NAME_DOWN ", " NAV_NAME_UP,
+             "       " NAV_NAME_SELECT " to select.",
 			       "",
 			       NULL };
 
@@ -1332,23 +1387,22 @@ prompt_and_wait()
         int alt = ui_key_pressed(KEY_LEFTALT) || ui_key_pressed(KEY_RIGHTALT);
         int visible = ui_text_visible();
 
-/*
-        if (key == KEY_VOLUMEUP && ui_key_pressed(KEY_VOLUMEDOWN)) {
+        /* if (key == NAV_KEY_UP && ui_key_pressed(NAV_KEY_DOWN)) {
             // Wait for the keys to be released, to avoid triggering
             // special boot modes (like coming back into recovery!).
-            while (ui_key_pressed(KEY_VOLUMEUP) ||
-                   ui_key_pressed(KEY_VOLUMEDOWN)) {
+            while (ui_key_pressed(NAV_KEY_UP) ||
+                   ui_key_pressed(NAV_KEY_DOWN)) {
                 usleep(1000);
             }
             chosen_item = ITEM_REBOOT;
         } else */
-        if ((key == KEY_VOLUMEDOWN) && visible) {
+        if ((key == NAV_KEY_DOWN) && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_VOLUMEUP) && visible) {
+        } else if ((key == NAV_KEY_UP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_POWER) && visible ) {
+        } else if ((key == NAV_KEY_SELECT) && visible ) {
             chosen_item = selected;
         }
 
@@ -1382,11 +1436,11 @@ prompt_and_wait()
                 	} else {
                                 ui_clear_key_queue();
                 		ui_print("\nUSB-MS enabled!");
-				ui_print("\nPress Trackball to disable,");
+				ui_print("\nPress " NAV_NAME_SELECT " to disable,");
 				ui_print("\nand return to menu\n");
 		       		for (;;) {
         	                        	int key = ui_wait_key();
-						if (key == KEY_POWER) {
+						if (key == NAV_KEY_SELECT) {
 							ui_print("\nDisabling USB-MS : ");
 						        pid_t pid = fork();
 				                	if (pid == 0) {
@@ -1481,7 +1535,7 @@ main(int argc, char **argv)
     tcflow(STDIN_FILENO, TCOOFF);
 
     char prop_value[PROPERTY_VALUE_MAX];
-    property_get("ro.modversion", &prop_value, "not set");
+    property_get("ro.modversion", &prop_value[0], "not set");
  
     ui_init();
     ui_print("Build : ");

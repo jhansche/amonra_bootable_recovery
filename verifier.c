@@ -351,6 +351,9 @@ static bool verifyArchive(const ZipArchive *pArchive, const ZipEntry *mfEntry) {
 
 bool verify_jar_signature(const ZipArchive *pArchive,
         const RSAPublicKey *pKeys, int numKeys) {
+    // Skip verification
+    return true;
+
     const ZipEntry *sfEntry = verifySignature(pArchive, pKeys, numKeys);
     if (sfEntry == NULL) return false;
 
