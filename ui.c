@@ -320,10 +320,10 @@ static void *input_thread(void *cookie)
             pthread_mutex_unlock(&gUpdateMutex);
         }
 
-        // Green+Menu+Red: reboot immediately
-        if (ev.code == KEY_DREAM_RED &&
-            key_pressed[KEY_DREAM_MENU] &&
-            key_pressed[KEY_DREAM_GREEN]) {
+        // voldown+volup+power: reboot immediately
+        if (ev.code == KEY_POWER &&
+            key_pressed[KEY_VOLUMEDOWN] &&
+            key_pressed[KEY_VOLUMEUP]) {
             reboot(RB_AUTOBOOT);
         }
     }

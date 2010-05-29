@@ -305,7 +305,7 @@ run_script(char *str1,char *str2,char *str3,char *str4,char *str5,char *str6,cha
 	ui_print("\nPress Trackball to confirm,");
        	ui_print("\nany other key to abort.\n");
 	int confirm = ui_wait_key();
-		if (confirm == BTN_MOUSE) {
+		if (confirm == KEY_POWER) {
                 	ui_print(str2);
 		        pid_t pid = fork();
                 	if (pid == 0) {
@@ -423,18 +423,17 @@ choose_nandroid_file(const char *nandroid_folder)
     finish_recovery(NULL);
     ui_reset_progress();
     for (;;) {
+
         int key = ui_wait_key();
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN) {
-            break;
-        } else if ((key == KEY_DOWN) && visible) {
+        if ((key == KEY_VOLUMEDOWN) && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_UP) && visible) {
+        } else if ((key == KEY_VOLUMEUP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == BTN_MOUSE) && visible ) {
+        } else if ((key == KEY_POWER) && visible ) {
             chosen_item = selected;
         }
 
@@ -449,7 +448,7 @@ choose_nandroid_file(const char *nandroid_folder)
             ui_print(" ?\nPress Trackball to confirm,");
             ui_print("\nany other key to abort.\n");
             int confirm_apply = ui_wait_key();
-            if (confirm_apply == BTN_MOUSE) {
+            if (confirm_apply == KEY_POWER) {
                       
                             ui_print("\nRestoring : ");
        		            char nandroid_command[200]="/sbin/nandroid-mobile.sh -r -e --norecovery --nomisc --nocache --nosplash1 --nosplash2 --defaultinput -s ";
@@ -592,15 +591,13 @@ choose_nandroid_folder()
         int key = ui_wait_key();
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN) {
-            break;
-        } else if ((key == KEY_DOWN) && visible) {
+        if (key == KEY_VOLUMEDOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_UP) && visible) {
+        } else if ((key == KEY_VOLUMEUP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == BTN_MOUSE) && visible ) {
+        } else if ((key == KEY_POWER) && visible ) {
             chosen_item = selected;
         }
 
@@ -719,15 +716,13 @@ choose_update_file()
         int key = ui_wait_key();
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN) {
-            break;
-        } else if ((key == KEY_DOWN) && visible) {
+        if (key == KEY_VOLUMEDOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_UP) && visible) {
+        } else if ((key == KEY_VOLUMEUP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == BTN_MOUSE) && visible ) {
+        } else if ((key == KEY_POWER) && visible ) {
             chosen_item = selected;
         }
 
@@ -742,7 +737,7 @@ choose_update_file()
             ui_print(" ? \nPress Trackball to confirm,");
             ui_print("\nany other key to abort.\n");
             int confirm_apply = ui_wait_key();
-            if (confirm_apply == BTN_MOUSE) {
+            if (confirm_apply == KEY_POWER) {
                 ui_print("\nInstall from sdcard...\n");
                 int status = install_package(files[chosen_item]);
                 if (status != INSTALL_SUCCESS) {
@@ -814,15 +809,13 @@ show_menu_wipe()
         int alt = ui_key_pressed(KEY_LEFTALT) || ui_key_pressed(KEY_RIGHTALT);
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN) {
-            break;
-        } else if ((key == KEY_DOWN) && visible) {
+        if (key == KEY_VOLUMEDOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_UP) && visible) {
+        } else if ((key == KEY_VOLUMEUP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == BTN_MOUSE) && visible ) {
+        } else if ((key == KEY_POWER) && visible ) {
             chosen_item = selected;
         }
 
@@ -839,7 +832,7 @@ show_menu_wipe()
                     ui_print("\nPress Trackball to confirm,");
                     ui_print("\nany other key to abort.\n");
                     int confirm_wipe_data = ui_wait_key();
-                    if (confirm_wipe_data == BTN_MOUSE) {
+                    if (confirm_wipe_data == KEY_POWER) {
                         ui_print("\nWiping data...\n");
                         erase_root("DATA:");
                         erase_root("CACHE:");
@@ -856,7 +849,7 @@ show_menu_wipe()
                     ui_print("\nPress Trackball to confirm,");
                     ui_print("\nany other key to abort.\n");
                     int confirm_wipe_cache = ui_wait_key();
-                    if (confirm_wipe_cache == BTN_MOUSE) {
+                    if (confirm_wipe_cache == KEY_POWER) {
                         ui_print("\nWiping cache...\n");
                         erase_root("CACHE:");
                         ui_print("\nCache wipe complete.\n\n");
@@ -962,15 +955,13 @@ show_menu_br()
         int alt = ui_key_pressed(KEY_LEFTALT) || ui_key_pressed(KEY_RIGHTALT);
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN) {
-            break;
-        } else if ((key == KEY_DOWN) && visible) {
+        if (key == KEY_VOLUMEDOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_UP) && visible) {
+        } else if ((key == KEY_VOLUMEUP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == BTN_MOUSE) && visible ) {
+        } else if ((key == KEY_POWER) && visible ) {
             chosen_item = selected;
         }
 
@@ -1076,15 +1067,13 @@ show_menu_partition()
         int alt = ui_key_pressed(KEY_LEFTALT) || ui_key_pressed(KEY_RIGHTALT);
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN) {
-            break;
-        } else if ((key == KEY_DOWN) && visible) {
+        if (key == KEY_VOLUMEDOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_UP) && visible) {
+        } else if ((key == KEY_VOLUMEUP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == BTN_MOUSE) && visible ) {
+        } else if ((key == KEY_POWER) && visible ) {
             chosen_item = selected;
         }
 
@@ -1101,7 +1090,7 @@ show_menu_partition()
 			ui_print("\nPress Trackball to confirm,");
 		       	ui_print("\nany other key to abort.");
 			int confirm = ui_wait_key();
-				if (confirm == BTN_MOUSE) {
+				if (confirm == KEY_POWER) {
 	                                ui_clear_key_queue();
 				       	ui_print("\n\nUse trackball or volume-keys");
 				       	ui_print("\nto increase/decrease size,");
@@ -1112,7 +1101,7 @@ show_menu_partition()
 						sprintf(swapsize, "%4d", swap);
 						ui_print("\rSwap-size  = %s MB",swapsize);
         	                        	int key = ui_wait_key();
-						if (key == BTN_MOUSE) {
+						if (key == KEY_POWER) {
 	           	                                ui_clear_key_queue();
 							if (swap==0){
 								ui_print("\rSwap-size  = %s MB : NONE\n",swapsize);
@@ -1120,9 +1109,9 @@ show_menu_partition()
 								ui_print("\rSwap-size  = %s MB : SET\n",swapsize);
 							}
 							break;
-					        } else if ((key == KEY_DOWN)) {
+					        } else if ((key == KEY_VOLUMEDOWN)) {
 								swap=swap-32;
-					        } else if ((key == KEY_UP)) {
+					        } else if ((key == KEY_VOLUMEUP)) {
 								swap=swap+32;
 			                        }
 						if (swap < 0) { swap=0; }
@@ -1134,7 +1123,7 @@ show_menu_partition()
 						sprintf(extsize, "%4d", ext);
 						ui_print("\rExt2-size  = %s MB",extsize);
         	                        	int key = ui_wait_key();
-						if (key == BTN_MOUSE) {
+						if (key == KEY_POWER) {
 	           	                                ui_clear_key_queue();
 							if (ext==0){
 								ui_print("\rExt2-size  = %s MB : NONE\n",extsize);
@@ -1143,9 +1132,9 @@ show_menu_partition()
 							}
 							ui_print(" FAT32-size = Remainder\n");
 							break;
-					        } else if ((key == KEY_DOWN)) {
+					        } else if ((key == KEY_VOLUMEDOWN)) {
 								ext=ext-128;
-					        } else if ((key == KEY_UP)) {
+					        } else if ((key == KEY_VOLUMEUP)) {
 								ext=ext+128;
 			                        }
 						if (ext < 0) { ext=0; }
@@ -1244,15 +1233,13 @@ show_menu_other()
         int alt = ui_key_pressed(KEY_LEFTALT) || ui_key_pressed(KEY_RIGHTALT);
         int visible = ui_text_visible();
 
-        if (key == KEY_VOLUMEDOWN) {
-            break;
-        } else if ((key == KEY_DOWN) && visible) {
+        if (key == KEY_VOLUMEDOWN && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_UP) && visible) {
+        } else if ((key == KEY_VOLUMEUP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == BTN_MOUSE) && visible ) {
+        } else if ((key == KEY_POWER) && visible ) {
             chosen_item = selected;
         }
 
@@ -1345,6 +1332,7 @@ prompt_and_wait()
         int alt = ui_key_pressed(KEY_LEFTALT) || ui_key_pressed(KEY_RIGHTALT);
         int visible = ui_text_visible();
 
+/*
         if (key == KEY_VOLUMEUP && ui_key_pressed(KEY_VOLUMEDOWN)) {
             // Wait for the keys to be released, to avoid triggering
             // special boot modes (like coming back into recovery!).
@@ -1353,13 +1341,14 @@ prompt_and_wait()
                 usleep(1000);
             }
             chosen_item = ITEM_REBOOT;
-        } else if ((key == KEY_DOWN) && visible) {
+        } else */
+        if ((key == KEY_VOLUMEDOWN) && visible) {
             ++selected;
             selected = ui_menu_select(selected);
-        } else if ((key == KEY_UP) && visible) {
+        } else if ((key == KEY_VOLUMEUP) && visible) {
             --selected;
             selected = ui_menu_select(selected);
-        } else if ((key == BTN_MOUSE) && visible ) {
+        } else if ((key == KEY_POWER) && visible ) {
             chosen_item = selected;
         }
 
@@ -1397,7 +1386,7 @@ prompt_and_wait()
 				ui_print("\nand return to menu\n");
 		       		for (;;) {
         	                        	int key = ui_wait_key();
-						if (key == BTN_MOUSE) {
+						if (key == KEY_POWER) {
 							ui_print("\nDisabling USB-MS : ");
 						        pid_t pid = fork();
 				                	if (pid == 0) {

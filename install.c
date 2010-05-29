@@ -326,8 +326,8 @@ handle_update_package(const char *path, ZipArchive *zip)
             VERIFICATION_PROGRESS_TIME);
 
     if (!verify_jar_signature(zip, keys, sizeof(keys) / sizeof(keys[0]))) {
-        LOGE("Verification failed\n");
-        return INSTALL_CORRUPT;
+        LOGE("Verification failed, but no one cares, just keep going!\n");
+//        return INSTALL_CORRUPT;
     }
 
     // Update should take the rest of the progress bar.
